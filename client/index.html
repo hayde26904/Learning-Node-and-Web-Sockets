@@ -1,32 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
     <canvas id="canvas"></canvas>
     <script src="socket.io/socket.io.js"></script>
     <script>
+        function lerp( a, b, alpha ) {
+            return a + alpha * (b - a);
+        }
+
         let socket = io();
-        
-        socket.on('init', (data) => {
-            
-        });
+        let PLAYER_LIST = {};
 
         let canvas = document.getElementById('canvas');
         let ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
+        let x = 0;
+        let y = 0;
 
-        function update(){
+
+        socket.on("tick", function(p_list){
+            PLAYER_LIST = p_list;
+        });
+
+        function update() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.fillRect(x, y, 30, 30);
+            console.log(socket.id);
+
+            for(i in PLAYER_LIST){
+                player = PLAYER_LIST[i];
+                if(player.id != socket.id){
+                    let smoothedX = lerp(player.x, player.lastX, 0.01);
+                    let smoothedY = lerp(player.y, player.lastY, 0.01);
+                    ctx.fillStyle = player.color;
+                    ctx.fillRect(smoothedX, smoothedY, 30, 30);
+                }
+            }
         }
 
         setInterval(update, 16);
-        
+
+        document.addEventListener('mousemove', function (event) {
+
+            x = event.clientX;
+            y = event.clientY;
+
+            socket.emit("move", {
+                id: socket.id,
+                newX: event.clientX,
+                newY: event.clientY,
+                movementX: event.movementX,
+                movementY: event.movementY,
+            });
+        });
+
     </script>
 </body>
+
 </html>

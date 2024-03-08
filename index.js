@@ -18,32 +18,39 @@ function randomColor() {
     return "rgb(" + Math.floor(Math.random() * 256) + "," + Math.floor(Math.random() * 256) + "," + Math.floor(Math.random() * 256) + ")";
 }
 
-let SOCKET_LIST = {};
-let allId = 0;
+let PLAYER_LIST = {};
+let allID = 0;
 
 let io = require('socket.io')(serv, {});
 io.sockets.on('connection', function(socket) {
-    console.log('socket connection');
-    socket.id = allId++;
-    socket.color = randomColor();
-    socket.x = 0;
-    socket.y = 0;
-    SOCKET_LIST[socket.id] = socket;
+    console.log("SOCKET CONNECTION");
+    let player = {};
+    player.id = socket.id;
+    player.color = randomColor();
+    player.x = 0;
+    player.y = 0;
+    player.lastX = 0;
+    player.lastY = 0;
+    PLAYER_LIST[player.id] = player;
+    console.log(PLAYER_LIST);
 
-    socket.emit('init', {
-        id: socket.id,
-        color: socket.color,
+    socket.on('move', function(data){
+        let player = PLAYER_LIST[data.id];
+        player.lastX = player.x;
+        player.lastY = player.x;
+        player.x = data.newX;
+        player.y = data.newY;
+        console.log(data.id + " moved");
     });
-    
 });
 
 setInterval(function(){
-
-    io.emit('tick', {SOCKET_LIST});
+    console.log('tick');
+    io.emit('tick', PLAYER_LIST);
 
     /*for(let i in SOCKET_LIST){
         let socket = SOCKET_LIST[i];
 
     }*/
 
-}, 1000/25);
+}, 100);
