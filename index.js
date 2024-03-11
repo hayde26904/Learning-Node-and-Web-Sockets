@@ -59,4 +59,4 @@ setInterval(function(){
 
     }*/
 
-}, 16);
+}, 32);
