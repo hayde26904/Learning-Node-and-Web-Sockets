@@ -11,8 +11,8 @@
     <canvas id="canvas"></canvas>
     <script src="socket.io/socket.io.js"></script>
     <script>
-        function lerp( a, b, alpha ) {
-            return a + alpha * (b - a);
+        function lerp(start, end, t) {
+            return start * (1 - t) + end * t;
         }
 
         let socket = io();
@@ -23,9 +23,19 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        let x = 0;
-        let y = 0;
+        let me;
+        let x;
+        let y;
+        let color;
 
+        socket.on("init", function(p_list){
+            PLAYER_LIST = p_list;
+            me = PLAYER_LIST[socket.id];
+            x = me.x;
+            y = me.y;
+            color = me.color;
+            setInterval(update, 16);
+        });
 
         socket.on("tick", function(p_list){
             PLAYER_LIST = p_list;
@@ -33,22 +43,19 @@
 
         function update() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = me.color;
             ctx.fillRect(x, y, 30, 30);
-            console.log(socket.id);
 
             for(i in PLAYER_LIST){
                 player = PLAYER_LIST[i];
                 if(player.id != socket.id){
-                    let smoothedX = lerp(player.x, player.lastX, 0.01);
-                    let smoothedY = lerp(player.y, player.lastY, 0.01);
+                    let smoothedX = lerp(player.lastX, player.x, 0.1);
+                    let smoothedY = lerp(player.lastY, player.y, 0.1);
                     ctx.fillStyle = player.color;
-                    ctx.fillRect(smoothedX, smoothedY, 30, 30);
+                    ctx.fillRect(player.x, player.y, 30, 30);
                 }
             }
         }
-
-        setInterval(update, 16);
 
         document.addEventListener('mousemove', function (event) {
 

@@ -32,15 +32,21 @@ io.sockets.on('connection', function(socket) {
     player.lastX = 0;
     player.lastY = 0;
     PLAYER_LIST[player.id] = player;
-    console.log(PLAYER_LIST);
+
+    socket.emit('init', PLAYER_LIST);
 
     socket.on('move', function(data){
         let player = PLAYER_LIST[data.id];
         player.lastX = player.x;
-        player.lastY = player.x;
+        player.lastY = player.y;
         player.x = data.newX;
         player.y = data.newY;
         console.log(data.id + " moved");
+    });
+
+    socket.on('disconnect', function(){
+        console.log("SOCKET DISCONNECT");
+        delete PLAYER_LIST[socket.id];
     });
 });
 
@@ -53,4 +59,4 @@ setInterval(function(){
 
     }*/
 
-}, 100);
+}, 16);
